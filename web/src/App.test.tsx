@@ -3,11 +3,20 @@ import { describe, expect, it } from "vitest";
 import App from "./App";
 
 describe("App", () => {
-  it("lists all six drills on the menu", () => {
+  it("lists the daily workout and all six drills on the menu", () => {
     render(<App />);
-    for (const name of ["Quick maths", "Colour word", "Memory grid", "Number order", "Odd one out", "Reaction tap"]) {
+    for (const name of ["Daily workout", "Quick maths", "Colour word", "Memory grid", "Number order", "Odd one out", "Reaction tap"]) {
       expect(screen.getByRole("button", { name })).toBeInTheDocument();
     }
+  });
+
+  it("opens the daily workout intro with three drills and a start button", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Daily workout" }));
+    expect(screen.getByRole("heading", { name: "Daily workout" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start workout" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    expect(screen.getByRole("button", { name: "Daily workout" })).toBeInTheDocument();
   });
 
   it("opens each drill with a tap-to-start overlay and returns to the menu", () => {

@@ -1,27 +1,10 @@
-import { useState, type ComponentType } from "react";
+import { useState } from "react";
 import { GameAuth, GameButton, GameTopbar } from "@freegamestore/games";
 import GameShell from "./GameShell";
-import { MathsDrill } from "./drills/maths/MathsDrill";
-import { StroopDrill } from "./drills/stroop/StroopDrill";
-import { MemoryDrill } from "./drills/memory/MemoryDrill";
-import { NumberOrderDrill } from "./drills/number-order/NumberOrderDrill";
-import { OddOneOutDrill } from "./drills/odd-one-out/OddOneOutDrill";
-import { ReactionTapDrill } from "./drills/reaction-tap/ReactionTapDrill";
+import { DRILLS } from "./drills/registry";
+import { DailyWorkout } from "./dailyWorkout";
 
-interface Drill {
-  id: string;
-  name: string;
-  Component: ComponentType<{ onExit: () => void }>;
-}
-
-const DRILLS: Drill[] = [
-  { id: "maths", name: "Quick maths", Component: MathsDrill },
-  { id: "colour-word", name: "Colour word", Component: StroopDrill },
-  { id: "memory-grid", name: "Memory grid", Component: MemoryDrill },
-  { id: "number-order", name: "Number order", Component: NumberOrderDrill },
-  { id: "odd-one-out", name: "Odd one out", Component: OddOneOutDrill },
-  { id: "reaction-tap", name: "Reaction tap", Component: ReactionTapDrill },
-];
+const DAILY = "daily";
 
 export default function App() {
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -30,7 +13,9 @@ export default function App() {
   return (
     <GameShell topbar={<GameTopbar title="Zap Drills" />}>
       <GameAuth />
-      {active ? (
+      {activeId === DAILY ? (
+        <DailyWorkout onExit={() => setActiveId(null)} />
+      ) : active ? (
         <active.Component onExit={() => setActiveId(null)} />
       ) : (
         <div className="flex flex-col items-center justify-center h-full gap-4 p-4">
@@ -38,7 +23,12 @@ export default function App() {
             Zap Drills
           </h1>
           <p style={{ color: "var(--muted)" }}>Fun quick puzzles. Pick a 60-second drill.</p>
-          <div className="flex flex-col gap-3 w-full" style={{ maxWidth: 360 }}>
+          <div className="grid gap-3 w-full" style={{ maxWidth: 360, gridTemplateColumns: "1fr 1fr" }}>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <GameButton size="md" block onClick={() => setActiveId(DAILY)}>
+                Daily workout
+              </GameButton>
+            </div>
             {DRILLS.map((drill) => (
               <GameButton key={drill.id} size="md" block onClick={() => setActiveId(drill.id)}>
                 {drill.name}
