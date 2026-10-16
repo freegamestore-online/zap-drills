@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import indexHtml from "../index.html?raw";
 
 // Zap Drills makes no cognitive-benefit claims. The FTC fined Lumosity $2M in 2016 for
 // similar claims, so the shipped copy must say "fun quick puzzles", never these.
@@ -29,6 +30,13 @@ describe("shipped copy", () => {
         }
       });
     }
+    expect(violations).toEqual([]);
+  });
+
+  it("covers the HTML shell (title and meta description) too", () => {
+    const violations = indexHtml
+      .split("\n")
+      .filter((line) => BANNED.some((pattern) => pattern.test(line)));
     expect(violations).toEqual([]);
   });
 

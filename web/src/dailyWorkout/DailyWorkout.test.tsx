@@ -6,6 +6,7 @@ import { utcDate } from "./date";
 import { drillById } from "../drills/registry";
 import { loadDayResult, STREAK_KEY } from "./storage";
 import { createMemoryStorage } from "../test/memoryStorage";
+import { GAME_ID } from "../config";
 
 const DRILL_MS = 60_000;
 
@@ -30,26 +31,26 @@ function playDrill(name: string) {
   });
 }
 
+/** Starts today's workout and plays all three drills to the results screen. */
+function playWholeWorkout() {
+  const names = getDrillsForDate(utcDate()).map((id) => drillById(id).name);
+  render(<DailyWorkout onExit={() => {}} />);
+  fireEvent.click(screen.getByRole("button", { name: "Start workout" }));
+
+  playDrill(names[0]!);
+  fireEvent.click(screen.getByRole("button", { name: "Next drill (2 of 3)" }));
+  playDrill(names[1]!);
+  fireEvent.click(screen.getByRole("button", { name: "Next drill (3 of 3)" }));
+  playDrill(names[2]!);
+  fireEvent.click(screen.getByRole("button", { name: "See results" }));
+  return names;
+}
+
 describe("DailyWorkout", () => {
   it("plays the three drills for today in order, then records the streak", () => {
     const today = utcDate();
     const ids = getDrillsForDate(today);
-    const names = ids.map((id) => drillById(id).name);
-
-    render(<DailyWorkout onExit={() => {}} />);
-    expect(names.every((n) => screen.getByText(n))).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Start workout" }));
-
-    playDrill(names[0]!);
-    expect(screen.getByRole("button", { name: "Next drill (2 of 3)" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Next drill (2 of 3)" }));
-
-    playDrill(names[1]!);
-    expect(screen.getByRole("button", { name: "Next drill (3 of 3)" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Next drill (3 of 3)" }));
-
-    playDrill(names[2]!);
-    fireEvent.click(screen.getByRole("button", { name: "See results" }));
+    const names = playWholeWorkout();
 
     expect(screen.getByRole("heading", { name: "Workout complete" })).toBeInTheDocument();
     for (const name of names) expect(screen.getByText(name)).toBeInTheDocument();
@@ -74,5 +75,51 @@ describe("DailyWorkout", () => {
     expect(screen.getByRole("heading", { name: "Workout complete" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Start workout" })).toBeNull();
     expect(screen.getByText("15")).toBeInTheDocument();
+  });
+});
+
+describe("leaderboard submission", () => {
+  /** The POST requests the workout sent to the leaderboard API. */
+  function scorePosts(fetchMock: ReturnType<typeof vi.fn>) {
+    return fetchMock.mock.calls.filter(([, init]) => (init as RequestInit | undefined)?.method === "POST");
+  }
+
+  it("submits the combined total when the workout is finished", () => {
+    const fetchMock = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true, rank: 4 }) }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    playWholeWorkout();
+
+    const [url, init] = scorePosts(fetchMock)[0]!;
+    expect(String(url)).toMatch(/\/api\/scores$/);
+    const body = JSON.parse((init as RequestInit).body as string);
+    expect(body).toEqual({ game: GAME_ID, score: loadDayResult(utcDate())!.total });
+  });
+
+  it("handles an 'Invalid game' rejection quietly and still shows the results", () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({ ok: false, status: 400, json: () => Promise.resolve({ error: "Invalid game" }) }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    playWholeWorkout();
+
+    expect(scorePosts(fetchMock)).toHaveLength(1);
+    expect(screen.getByRole("heading", { name: "Workout complete" })).toBeInTheDocument();
+    expect(screen.queryByText(/invalid game/i)).toBeNull();
+    expect(loadDayResult(utcDate())).not.toBeNull();
+  });
+
+  it("survives a dropped connection without an unhandled error", () => {
+    const fetchMock = vi.fn(() => Promise.reject(new TypeError("Failed to fetch")));
+    vi.stubGlobal("fetch", fetchMock);
+
+    playWholeWorkout();
+    act(() => {
+      vi.runOnlyPendingTimers();
+    });
+
+    expect(screen.getByRole("heading", { name: "Workout complete" })).toBeInTheDocument();
+    expect(loadDayResult(utcDate())).not.toBeNull();
   });
 });

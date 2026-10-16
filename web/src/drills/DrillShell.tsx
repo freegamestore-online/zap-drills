@@ -59,15 +59,41 @@ export function DrillShell({
   }, [status, score, flow]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 12, gap: 12, boxSizing: "border-box" }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        padding: 12,
+        gap: 12,
+        boxSizing: "border-box",
+      }}
+    >
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 8,
+        }}
+      >
         <GameButton variant="ghost" size="sm" onClick={onExit}>
           Back
         </GameButton>
-        <h1 className="text-xl font-bold" style={{ fontFamily: "Fraunces, serif" }}>
+        <h1
+          className="text-xl font-bold"
+          style={{ fontFamily: "Fraunces, serif" }}
+        >
           {title}
         </h1>
-        <span style={{ color: "var(--muted)", fontWeight: 700, minWidth: 64, textAlign: "right" }}>
+        <span
+          style={{
+            color: "var(--muted)",
+            fontWeight: 700,
+            minWidth: 64,
+            textAlign: "right",
+          }}
+        >
           {scoreText ?? `Score ${score}`}
         </span>
       </header>
@@ -78,40 +104,63 @@ export function DrillShell({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(timeLeft * 100)}
-        style={{ height: 8, borderRadius: 4, background: "var(--line)", overflow: "hidden" }}
+        style={{
+          height: 8,
+          borderRadius: 4,
+          background: "var(--line)",
+          overflow: "hidden",
+        }}
       >
-        <div style={{ height: "100%", width: `${timeLeft * 100}%`, background: "var(--accent)" }} />
+        <div
+          style={{
+            height: "100%",
+            width: `${timeLeft * 100}%`,
+            background: "var(--accent)",
+          }}
+        />
       </div>
 
       {status === "done" ? (
         <section
           aria-label="Drill complete"
+          className="screen-body"
           style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 16,
             background: "var(--panel)",
             border: "1px solid var(--line)",
             borderRadius: "var(--radius)",
-            padding: 24,
           }}
         >
-          <h2 className="text-2xl font-bold" style={{ fontFamily: "Fraunces, serif" }}>
-            Drill complete
-          </h2>
-          <p style={{ color: "var(--muted)" }}>
-            {summaryText ?? `${score} right out of ${total}`}
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 320 }}>
+          <div className="flex flex-col items-center gap-3">
+            <h2
+              className="text-2xl font-bold"
+              style={{ fontFamily: "Fraunces, serif" }}
+            >
+              Drill complete
+            </h2>
+            <p style={{ color: "var(--muted)" }}>
+              {summaryText ?? `${score} right out of ${total}`}
+            </p>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              width: "100%",
+              maxWidth: 320,
+            }}
+          >
             {flow.next ? (
               <>
                 <GameButton size="lg" block onClick={flow.next.onNext}>
                   {flow.next.label}
                 </GameButton>
-                <GameButton variant="secondary" size="md" block onClick={onExit}>
+                <GameButton
+                  variant="secondary"
+                  size="md"
+                  block
+                  onClick={onExit}
+                >
                   Leave workout
                 </GameButton>
               </>
@@ -120,7 +169,12 @@ export function DrillShell({
                 <GameButton size="lg" block onClick={onStart}>
                   Play again
                 </GameButton>
-                <GameButton variant="secondary" size="md" block onClick={onExit}>
+                <GameButton
+                  variant="secondary"
+                  size="md"
+                  block
+                  onClick={onExit}
+                >
                   Back to drills
                 </GameButton>
               </>
@@ -146,7 +200,11 @@ export function DrillShell({
             style={{
               minHeight: "1.5em",
               fontWeight: 700,
-              color: verdict ? (verdict.correct ? "var(--success)" : "var(--error)") : "transparent",
+              color: verdict
+                ? verdict.correct
+                  ? "var(--success)"
+                  : "var(--error)"
+                : "transparent",
             }}
           >
             {verdict ? (verdict.correct ? "Correct" : "Wrong") : "."}
@@ -175,10 +233,21 @@ export function DrillShell({
                 padding: 16,
               }}
             >
-              <span className="text-2xl font-bold" style={{ fontFamily: "Fraunces, serif" }}>
+              <span
+                className="text-2xl font-bold"
+                style={{ fontFamily: "Fraunces, serif" }}
+              >
                 Tap to start
               </span>
-              <span style={{ color: "var(--muted)", textAlign: "center", maxWidth: 320 }}>{instructions}</span>
+              <span
+                style={{
+                  color: "var(--muted)",
+                  textAlign: "center",
+                  maxWidth: 320,
+                }}
+              >
+                {instructions}
+              </span>
             </button>
           )}
         </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { GameButton } from "@freegamestore/games";
+import { GameButton, useLeaderboard } from "@freegamestore/games";
+import { GAME_ID } from "../config";
 import { DrillFlowContext } from "../drills/DrillFlow";
 import { drillById } from "../drills/registry";
 import type { DrillId } from "../drills/ids";
@@ -27,6 +28,7 @@ export function DailyWorkout({ onExit }: { onExit: () => void }) {
   const [scores, setScores] = useState<number[]>([]);
   const [result, setResult] = useState<DayResult | null>(saved);
   const [streak, setStreak] = useState(() => loadStreak(today).streak);
+  const { submitScore } = useLeaderboard(GAME_ID);
 
   const start = () => {
     setIndex(0);
@@ -35,8 +37,16 @@ export function DailyWorkout({ onExit }: { onExit: () => void }) {
   };
 
   const finish = () => {
-    const day: DayResult = { date: today, drills: drillIds, scores, total: sum(scores) };
+    const day: DayResult = {
+      date: today,
+      drills: drillIds,
+      scores,
+      total: sum(scores),
+    };
     saveDayResult(day);
+    // Quiet on failure: submitScore never throws. An "Invalid game" reply or a dropped
+    // connection just means this total doesn't reach the leaderboard. The local result stands.
+    void submitScore(day.total);
     setStreak(recordCompletion(today));
     setResult(day);
     setPhase("results");
@@ -57,7 +67,9 @@ export function DailyWorkout({ onExit }: { onExit: () => void }) {
         value={{
           onFinish: (score) => setScores((prev) => [...prev, score]),
           next: {
-            label: isLast ? "See results" : `Next drill (${index + 2} of ${WORKOUT_LENGTH})`,
+            label: isLast
+              ? "See results"
+              : `Next drill (${index + 2} of ${WORKOUT_LENGTH})`,
             onNext: next,
           },
         }}
@@ -69,51 +81,92 @@ export function DailyWorkout({ onExit }: { onExit: () => void }) {
 
   if (phase === "results" && result) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4 p-4" style={{ textAlign: "center" }}>
-        <h1 className="text-3xl font-bold" style={{ fontFamily: "Fraunces, serif" }}>
-          Workout complete
-        </h1>
-        <p style={{ color: "var(--muted)" }}>
-          {saved ? "You finished today's workout. Come back tomorrow." : "Nice work. Come back tomorrow."}
-        </p>
-        <ul style={{ listStyle: "none", padding: 0, margin: 0, width: "100%", maxWidth: 320 }}>
+      <div className="screen-body">
+        <div className="flex flex-col items-center gap-3">
+          <h1
+            className="text-3xl font-bold"
+            style={{ fontFamily: "Fraunces, serif" }}
+          >
+            Workout complete
+          </h1>
+          <p style={{ color: "var(--muted)" }}>
+            {saved
+              ? "You finished today's workout. Come back tomorrow."
+              : "Nice work. Come back tomorrow."}
+          </p>
+          <p style={{ fontWeight: 700 }}>Streak: {days(streak)}</p>
+          <GameButton size="lg" onClick={onExit}>
+            Back to menu
+          </GameButton>
+        </div>
+        <ul
+          style={{
+            listStyle: "none",
+            padding: 0,
+            margin: 0,
+            width: "100%",
+            maxWidth: 320,
+          }}
+        >
           {result.drills.map((id, i) => (
             <li
               key={id}
-              style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--line)" }}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "8px 0",
+                borderBottom: "1px solid var(--line)",
+              }}
             >
               <span>{drillById(id).name}</span>
               <span style={{ fontWeight: 700 }}>{result.scores[i]}</span>
             </li>
           ))}
-          <li style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontWeight: 800 }}>
+          <li
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "8px 0",
+              fontWeight: 800,
+            }}
+          >
             <span>Total</span>
             <span>{result.total}</span>
           </li>
         </ul>
-        <p style={{ fontWeight: 700 }}>Streak: {days(streak)}</p>
-        <GameButton size="lg" onClick={onExit}>
-          Back to menu
-        </GameButton>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-4 p-4" style={{ textAlign: "center" }}>
-      <h1 className="text-3xl font-bold" style={{ fontFamily: "Fraunces, serif" }}>
-        Daily workout
-      </h1>
-      <p style={{ color: "var(--muted)" }}>Three drills, the same for everyone today ({today} UTC).</p>
-      <ol style={{ margin: 0, padding: 0, listStyle: "none", fontWeight: 700 }}>
-        {drillIds.map((id) => (
-          <li key={id} style={{ padding: "4px 0" }}>
-            {drillById(id).name}
-          </li>
-        ))}
-      </ol>
-      <p style={{ fontWeight: 700 }}>Streak: {days(loadStreak(today).streak)}</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 320 }}>
+    <div className="screen-body">
+      <div className="flex flex-col items-center gap-3">
+        <h1
+          className="text-3xl font-bold"
+          style={{ fontFamily: "Fraunces, serif" }}
+        >
+          Daily workout
+        </h1>
+        <p style={{ color: "var(--muted)" }}>
+          Three drills, the same for everyone today ({today} UTC).
+        </p>
+        <p style={{ fontWeight: 700 }}>
+          Streak: {days(loadStreak(today).streak)}
+        </p>
+      </div>
+      <div
+        className="flex flex-col items-center gap-3"
+        style={{ width: "100%", maxWidth: 320 }}
+      >
+        <ol
+          style={{ margin: 0, padding: 0, listStyle: "none", fontWeight: 700 }}
+        >
+          {drillIds.map((id) => (
+            <li key={id} style={{ padding: "4px 0" }}>
+              {drillById(id).name}
+            </li>
+          ))}
+        </ol>
         <GameButton size="lg" block onClick={start}>
           Start workout
         </GameButton>

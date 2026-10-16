@@ -10,8 +10,7 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>(null);
 
   return (
-    <GameShell topbar={<GameTopbar title="Zap Drills" />}>
-      <GameAuth />
+    <GameShell topbar={<GameTopbar title="Zap Drills" actions={<GameAuth />} />}>
       {screen === "daily" ? (
         <DailyWorkout onExit={() => setScreen(null)} />
       ) : screen === "free" ? (
@@ -22,6 +21,12 @@ export default function App() {
             Zap Drills
           </h1>
           <p style={{ color: "var(--muted)" }}>Fun quick puzzles. Pick a 60-second drill.</p>
+          <p style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
+            Free to play.{" "}
+            <a href="https://freegamestore.online" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>
+              Built for freegamestore.online
+            </a>
+          </p>
           <div className="grid gap-3 w-full" style={{ maxWidth: 360, gridTemplateColumns: "1fr 1fr" }}>
             <GameButton size="md" block onClick={() => setScreen("daily")}>
               Daily workout
