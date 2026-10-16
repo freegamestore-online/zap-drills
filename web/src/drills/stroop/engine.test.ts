@@ -16,7 +16,7 @@ describe("PALETTE", () => {
       orange: "#EE7733",
       green: "#009988",
       red: "#CC3311",
-      grey: "#BBBBBB",
+      grey: "var(--drill-grey)",
     });
   });
 

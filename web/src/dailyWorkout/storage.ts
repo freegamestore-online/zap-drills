@@ -1,4 +1,5 @@
 import type { DrillId } from "../drills/ids";
+import { DRILL_IDS } from "../drills/ids";
 
 /** Key for the streak record, `{ lastDate, streak }`. */
 export const STREAK_KEY = "zap-daily-streak";
@@ -44,9 +45,14 @@ export function loadDayResult(date: string): DayResult | null {
   const valid =
     r.date === date &&
     Array.isArray(r.drills) &&
+    r.drills.length > 0 &&
+    r.drills.every((id): id is DrillId => DRILL_IDS.includes(id as DrillId)) &&
+    new Set(r.drills).size === r.drills.length &&
     Array.isArray(r.scores) &&
     r.scores.length === r.drills.length &&
-    r.scores.every((s) => typeof s === "number") &&
-    typeof r.total === "number";
+    r.scores.every((s) => typeof s === "number" && Number.isFinite(s) && s >= 0) &&
+    typeof r.total === "number" &&
+    Number.isFinite(r.total) &&
+    r.total === r.scores.reduce((sum, score) => sum + score, 0);
   return valid ? (r as DayResult) : null;
 }

@@ -34,6 +34,17 @@ describe("day results", () => {
     expect(loadDayResult("2026-10-16")).toBeNull();
   });
 
+  it.each([
+    ["unknown drill", { ...day, drills: ["not-a-drill", "reaction-tap", "memory-grid"] }],
+    ["duplicate drills", { ...day, drills: ["maths", "maths", "memory-grid"] }],
+    ["negative score", { ...day, scores: [-1, 4, 22], total: 25 }],
+    ["non-finite score", { ...day, scores: [null, 4, 9] }],
+    ["inconsistent total", { ...day, total: 26 }],
+  ])("rejects saved result with %s", (_label, value) => {
+    store.setItem(dayKey("2026-10-16"), JSON.stringify(value));
+    expect(loadDayResult("2026-10-16")).toBeNull();
+  });
+
   it("treats corrupt JSON as nothing stored", () => {
     store.setItem(dayKey("2026-10-16"), "{not json");
     expect(loadDayResult("2026-10-16")).toBeNull();

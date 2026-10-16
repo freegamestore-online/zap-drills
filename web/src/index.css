@@ -21,6 +21,7 @@
   /* Accent */
   --accent: #2563eb;
   --accent-soft: #eff6ff;
+  --drill-grey: #767676;
 
   /* Layout */
   --radius: 1.25rem;
@@ -50,6 +51,7 @@
     --error: #ef4444;
 
     --accent-soft: #1a2e26;
+    --drill-grey: #bdbdbd;
 
     /* Backward-compat aliases */
     --bg: #0f0f0f;
