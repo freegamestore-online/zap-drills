@@ -3,11 +3,10 @@ import { describe, expect, it } from "vitest";
 import App from "./App";
 
 describe("App", () => {
-  it("lists the daily workout and all six drills on the menu", () => {
+  it("offers the daily workout and free play on the menu", () => {
     render(<App />);
-    for (const name of ["Daily workout", "Quick maths", "Colour word", "Memory grid", "Number order", "Odd one out", "Reaction tap"]) {
-      expect(screen.getByRole("button", { name })).toBeInTheDocument();
-    }
+    expect(screen.getByRole("button", { name: "Daily workout" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Free play" })).toBeInTheDocument();
   });
 
   it("opens the daily workout intro with three drills and a start button", () => {
@@ -19,26 +18,19 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: "Daily workout" })).toBeInTheDocument();
   });
 
-  it("opens each drill with a tap-to-start overlay and returns to the menu", () => {
+  it("opens the free play list with all six drills", () => {
     render(<App />);
-    for (const [menu, start] of [
-      ["Quick maths", "Start Quick maths"],
-      ["Colour word", "Start Colour word"],
-      ["Memory grid", "Start Memory grid"],
-      ["Number order", "Start Number order"],
-      ["Odd one out", "Start Odd one out"],
-      ["Reaction tap", "Start Reaction tap"],
-    ] as const) {
-      fireEvent.click(screen.getByRole("button", { name: menu }));
-      expect(screen.getByRole("button", { name: start })).toBeInTheDocument();
-      fireEvent.click(screen.getByRole("button", { name: "Back" }));
-      expect(screen.getByRole("button", { name: menu })).toBeInTheDocument();
-    }
+    fireEvent.click(screen.getByRole("button", { name: "Free play" }));
+    expect(screen.getByRole("heading", { name: "Free play" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Play Reaction tap" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    expect(screen.getByRole("button", { name: "Free play" })).toBeInTheDocument();
   });
 
-  it("starts a drill and shows its answer buttons", () => {
+  it("starts a drill from free play and shows its answer buttons", () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Quick maths" }));
+    fireEvent.click(screen.getByRole("button", { name: "Free play" }));
+    fireEvent.click(screen.getByRole("button", { name: "Play Quick maths" }));
     fireEvent.click(screen.getByRole("button", { name: "Start Quick maths" }));
     expect(screen.getByRole("button", { name: "YES" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "NO" })).toBeEnabled();
