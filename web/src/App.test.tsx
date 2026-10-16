@@ -3,11 +3,11 @@ import { describe, expect, it } from "vitest";
 import App from "./App";
 
 describe("App", () => {
-  it("lists the three drills on the menu", () => {
+  it("lists all six drills on the menu", () => {
     render(<App />);
-    expect(screen.getByRole("button", { name: "Quick maths" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Colour word" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Memory grid" })).toBeInTheDocument();
+    for (const name of ["Quick maths", "Colour word", "Memory grid", "Number order", "Odd one out", "Reaction tap"]) {
+      expect(screen.getByRole("button", { name })).toBeInTheDocument();
+    }
   });
 
   it("opens each drill with a tap-to-start overlay and returns to the menu", () => {
@@ -16,6 +16,9 @@ describe("App", () => {
       ["Quick maths", "Start Quick maths"],
       ["Colour word", "Start Colour word"],
       ["Memory grid", "Start Memory grid"],
+      ["Number order", "Start Number order"],
+      ["Odd one out", "Start Odd one out"],
+      ["Reaction tap", "Start Reaction tap"],
     ] as const) {
       fireEvent.click(screen.getByRole("button", { name: menu }));
       expect(screen.getByRole("button", { name: start })).toBeInTheDocument();

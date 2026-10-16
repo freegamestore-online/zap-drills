@@ -13,13 +13,26 @@ interface DrillShellProps {
   onStart: () => void;
   onExit: () => void;
   children: ReactNode;
+  /** Header score text. Defaults to the correct count. */
+  scoreText?: string;
+  /** Drill-complete summary. Defaults to "N right out of M". */
+  summaryText?: string;
 }
 
 /**
  * Layout shared by all drills: a header, the 60 s timer bar, feedback, a tap-to-start
  * overlay over the live field, and the drill-complete card.
  */
-export function DrillShell({ title, instructions, session, onStart, onExit, children }: DrillShellProps) {
+export function DrillShell({
+  title,
+  instructions,
+  session,
+  onStart,
+  onExit,
+  children,
+  scoreText,
+  summaryText,
+}: DrillShellProps) {
   const { status, timeLeft, score, total, verdict } = session;
   const fieldRef = useRef<HTMLDivElement>(null);
   const shake = useShake(fieldRef);
@@ -40,7 +53,9 @@ export function DrillShell({ title, instructions, session, onStart, onExit, chil
         <h1 className="text-xl font-bold" style={{ fontFamily: "Fraunces, serif" }}>
           {title}
         </h1>
-        <span style={{ color: "var(--muted)", fontWeight: 700, minWidth: 64, textAlign: "right" }}>Score {score}</span>
+        <span style={{ color: "var(--muted)", fontWeight: 700, minWidth: 64, textAlign: "right" }}>
+          {scoreText ?? `Score ${score}`}
+        </span>
       </header>
 
       <div
@@ -74,7 +89,7 @@ export function DrillShell({ title, instructions, session, onStart, onExit, chil
             Drill complete
           </h2>
           <p style={{ color: "var(--muted)" }}>
-            {score} right out of {total}
+            {summaryText ?? `${score} right out of ${total}`}
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 320 }}>
             <GameButton size="lg" block onClick={onStart}>

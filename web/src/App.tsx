@@ -4,6 +4,9 @@ import GameShell from "./GameShell";
 import { MathsDrill } from "./drills/maths/MathsDrill";
 import { StroopDrill } from "./drills/stroop/StroopDrill";
 import { MemoryDrill } from "./drills/memory/MemoryDrill";
+import { NumberOrderDrill } from "./drills/number-order/NumberOrderDrill";
+import { OddOneOutDrill } from "./drills/odd-one-out/OddOneOutDrill";
+import { ReactionTapDrill } from "./drills/reaction-tap/ReactionTapDrill";
 
 interface Drill {
   id: string;
@@ -15,6 +18,9 @@ const DRILLS: Drill[] = [
   { id: "maths", name: "Quick maths", Component: MathsDrill },
   { id: "colour-word", name: "Colour word", Component: StroopDrill },
   { id: "memory-grid", name: "Memory grid", Component: MemoryDrill },
+  { id: "number-order", name: "Number order", Component: NumberOrderDrill },
+  { id: "odd-one-out", name: "Odd one out", Component: OddOneOutDrill },
+  { id: "reaction-tap", name: "Reaction tap", Component: ReactionTapDrill },
 ];
 
 export default function App() {
@@ -34,7 +40,7 @@ export default function App() {
           <p style={{ color: "var(--muted)" }}>Fun quick puzzles. Pick a 60-second drill.</p>
           <div className="flex flex-col gap-3 w-full" style={{ maxWidth: 360 }}>
             {DRILLS.map((drill) => (
-              <GameButton key={drill.id} size="lg" block onClick={() => setActiveId(drill.id)}>
+              <GameButton key={drill.id} size="md" block onClick={() => setActiveId(drill.id)}>
                 {drill.name}
               </GameButton>
             ))}
