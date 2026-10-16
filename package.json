@@ -9,6 +9,7 @@
     "build": "pnpm --filter @zap-drills/web build",
     "preview": "pnpm --filter @zap-drills/web preview",
     "typecheck": "pnpm --filter @zap-drills/web exec tsc -b",
-    "test": "pnpm --filter @zap-drills/web test"
+    "test": "pnpm --filter @zap-drills/web test",
+    "lint": "pnpm --filter @zap-drills/web lint"
   }
 }
