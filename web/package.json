@@ -1,5 +1,5 @@
 {
-  "name": "@APPNAME/web",
+  "name": "@zap-drills/web",
   "private": true,
   "type": "module",
   "scripts": {
