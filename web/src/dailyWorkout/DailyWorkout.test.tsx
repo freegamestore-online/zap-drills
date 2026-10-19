@@ -31,10 +31,18 @@ function playDrill(name: string) {
   });
 }
 
-/** Starts today's workout and plays all three drills to the results screen. */
-function playWholeWorkout() {
-  const names = getDrillsForDate(utcDate()).map((id) => drillById(id).name);
+async function renderDailyWorkout() {
   render(<DailyWorkout onExit={() => {}} />);
+  // useLeaderboard settles its initial two fetches asynchronously after mount.
+  await act(async () => {
+    await new Promise<void>((resolve) => setImmediate(resolve));
+  });
+}
+
+/** Starts today's workout and plays all three drills to the results screen. */
+async function playWholeWorkout() {
+  const names = getDrillsForDate(utcDate()).map((id) => drillById(id).name);
+  await renderDailyWorkout();
   fireEvent.click(screen.getByRole("button", { name: "Start workout" }));
 
   playDrill(names[0]!);
@@ -47,10 +55,10 @@ function playWholeWorkout() {
 }
 
 describe("DailyWorkout", () => {
-  it("plays the three drills for today in order, then records the streak", () => {
+  it("plays the three drills for today in order, then records the streak", async () => {
     const today = utcDate();
     const ids = getDrillsForDate(today);
-    const names = playWholeWorkout();
+    const names = await playWholeWorkout();
 
     expect(screen.getByRole("heading", { name: "Workout complete" })).toBeInTheDocument();
     for (const name of names) expect(screen.getByText(name)).toBeInTheDocument();
@@ -65,13 +73,13 @@ describe("DailyWorkout", () => {
     expect(JSON.parse(store.getItem(STREAK_KEY)!)).toEqual({ lastDate: today, streak: 1 });
   });
 
-  it("shows the saved result, without replaying, once today's workout is done", () => {
+  it("shows the saved result, without replaying, once today's workout is done", async () => {
     const today = utcDate();
     store.setItem(
       `zap-daily-${today}`,
       JSON.stringify({ date: today, drills: getDrillsForDate(today), scores: [3, 5, 7], total: 15 }),
     );
-    render(<DailyWorkout onExit={() => {}} />);
+    await renderDailyWorkout();
     expect(screen.getByRole("heading", { name: "Workout complete" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Start workout" })).toBeNull();
     expect(screen.getByText("15")).toBeInTheDocument();
@@ -84,11 +92,11 @@ describe("leaderboard submission", () => {
     return fetchMock.mock.calls.filter(([, init]) => (init as RequestInit | undefined)?.method === "POST");
   }
 
-  it("submits the combined total when the workout is finished", () => {
+  it("submits the combined total when the workout is finished", async () => {
     const fetchMock = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true, rank: 4 }) }));
     vi.stubGlobal("fetch", fetchMock);
 
-    playWholeWorkout();
+    await playWholeWorkout();
 
     const [url, init] = scorePosts(fetchMock)[0]!;
     expect(String(url)).toMatch(/\/api\/scores$/);
@@ -96,13 +104,13 @@ describe("leaderboard submission", () => {
     expect(body).toEqual({ game: GAME_ID, score: loadDayResult(utcDate())!.total });
   });
 
-  it("handles an 'Invalid game' rejection quietly and still shows the results", () => {
+  it("handles an 'Invalid game' rejection quietly and still shows the results", async () => {
     const fetchMock = vi.fn(() =>
       Promise.resolve({ ok: false, status: 400, json: () => Promise.resolve({ error: "Invalid game" }) }),
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    playWholeWorkout();
+    await playWholeWorkout();
 
     expect(scorePosts(fetchMock)).toHaveLength(1);
     expect(screen.getByRole("heading", { name: "Workout complete" })).toBeInTheDocument();
@@ -110,11 +118,11 @@ describe("leaderboard submission", () => {
     expect(loadDayResult(utcDate())).not.toBeNull();
   });
 
-  it("survives a dropped connection without an unhandled error", () => {
+  it("survives a dropped connection without an unhandled error", async () => {
     const fetchMock = vi.fn(() => Promise.reject(new TypeError("Failed to fetch")));
     vi.stubGlobal("fetch", fetchMock);
 
-    playWholeWorkout();
+    await playWholeWorkout();
     act(() => {
       vi.runOnlyPendingTimers();
     });

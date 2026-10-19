@@ -2,15 +2,21 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import App from "./App";
 
+async function renderApp() {
+  render(<App />);
+  // GameAuth resolves its initial session lookup asynchronously on mount.
+  await screen.findByRole("button", { name: "Sign in" });
+}
+
 describe("App", () => {
-  it("offers the daily workout and free play on the menu", () => {
-    render(<App />);
+  it("offers the daily workout and free play on the menu", async () => {
+    await renderApp();
     expect(screen.getByRole("button", { name: "Daily workout" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Free play" })).toBeInTheDocument();
   });
 
-  it("opens the daily workout intro with three drills and a start button", () => {
-    render(<App />);
+  it("opens the daily workout intro with three drills and a start button", async () => {
+    await renderApp();
     fireEvent.click(screen.getByRole("button", { name: "Daily workout" }));
     expect(screen.getByRole("heading", { name: "Daily workout" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start workout" })).toBeInTheDocument();
@@ -18,8 +24,8 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: "Daily workout" })).toBeInTheDocument();
   });
 
-  it("opens the free play list with all six drills", () => {
-    render(<App />);
+  it("opens the free play list with all six drills", async () => {
+    await renderApp();
     fireEvent.click(screen.getByRole("button", { name: "Free play" }));
     expect(screen.getByRole("heading", { name: "Free play" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Play Reaction tap" })).toBeInTheDocument();
@@ -27,8 +33,8 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: "Free play" })).toBeInTheDocument();
   });
 
-  it("starts a drill from free play and shows its answer buttons", () => {
-    render(<App />);
+  it("starts a drill from free play and shows its answer buttons", async () => {
+    await renderApp();
     fireEvent.click(screen.getByRole("button", { name: "Free play" }));
     fireEvent.click(screen.getByRole("button", { name: "Play Quick maths" }));
     fireEvent.click(screen.getByRole("button", { name: "Start Quick maths" }));
