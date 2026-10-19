@@ -3,20 +3,21 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
   timeout: 30_000,
+  workers: 1,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL: 'http://localhost:4175',
     viewport: { width: 390, height: 844 },
     screenshot: 'only-on-failure',
   },
   projects: [
-    { name: 'light', use: { ...devices['iPhone 14'], viewport: { width: 390, height: 844 }, colorScheme: 'light' } },
-    { name: 'dark', use: { ...devices['iPhone 14'], viewport: { width: 390, height: 844 }, colorScheme: 'dark' } },
+    { name: 'light', use: { ...devices['iPhone 14'], browserName: 'chromium', isMobile: true, hasTouch: true, viewport: { width: 390, height: 844 }, colorScheme: 'light' } },
+    { name: 'dark', use: { ...devices['iPhone 14'], browserName: 'chromium', isMobile: true, hasTouch: true, viewport: { width: 390, height: 844 }, colorScheme: 'dark' } },
   ],
   webServer: {
-    command: 'pnpm --filter @zap-drills/web preview --host 127.0.0.1 --port 4173',
-    port: 4173,
+    command: 'pnpm --filter @zap-drills/web preview --host 127.0.0.1 --port 4175 --strictPort',
+    port: 4175,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },
