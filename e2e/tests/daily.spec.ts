@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => preparePage(page));
 test('completes the three-drill daily workout, records its total and streak, submits leaderboard score', async ({ page }, testInfo) => {
   const assertNoErrors = checkNoConsoleErrors(page);
   let submittedScore: unknown;
-  await page.route('**/api/scores', async (route) => {
+  await page.route('https://leaderboard.freegamestore.online/v1/api/scores', async (route) => {
     if (route.request().method() === 'POST') submittedScore = route.request().postDataJSON();
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, rank: 1 }) });
   });

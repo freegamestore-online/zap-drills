@@ -2,10 +2,19 @@ import { expect, type Page, type TestInfo } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
+const consoleErrors = new WeakMap<Page, string[]>();
+
 export async function preparePage(page: Page) {
-  await page.clock.install({ time: new Date('2026-10-20T12:00:00Z') });
+  const errors: string[] = [];
+  consoleErrors.set(page, errors);
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('pageerror', (error) => errors.push(error.message));
   await page.route('https://auth.freegamestore.online/**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user: null }) }),
+    route.fulfill({ status: 200, contentType: 'application/json', body: 'null' }),
+  );
+  await page.route('https://api.freegamestore.online/**', (route) => route.fulfill({ status: 200, body: '' }));
+  await page.route('https://leaderboard.freegamestore.online/v1/api/leaderboard/**', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ scores: [] }) }),
   );
   await page.addInitScript(() => {
     let state = 42;
@@ -17,14 +26,11 @@ export async function preparePage(page: Page) {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
+  await page.clock.install({ time: new Date('2026-10-20T12:00:00Z') });
 }
 
 export function checkNoConsoleErrors(page: Page) {
-  const errors: string[] = [];
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
-  page.on('pageerror', (error) => errors.push(error.message));
+  const errors = consoleErrors.get(page) ?? [];
   return () => expect(errors, `Browser console errors:\n${errors.join('\n')}`).toEqual([]);
 }
 
