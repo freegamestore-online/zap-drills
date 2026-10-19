@@ -57,8 +57,17 @@ export async function finishCurrentDrill(page: Page) {
 
   const title = await page.locator('header h1').innerText();
   if (title === 'Memory grid') {
-    await page.clock.fastForward(1_000);
-    await page.getByRole('button', { name: 'Cell 1' }).click();
+    const litCells = await page.getByRole('button', { name: /^Cell / }).evaluateAll((cells) => {
+      const sample = document.createElement('div');
+      sample.style.backgroundColor = 'var(--accent)';
+      document.body.append(sample);
+      const accent = getComputedStyle(sample).backgroundColor;
+      sample.remove();
+      return cells.flatMap((cell, index) => getComputedStyle(cell).backgroundColor === accent ? [index + 1] : []);
+    });
+    const firstCell = page.getByRole('button', { name: 'Cell 1' });
+    for (let i = 0; i < 8 && !(await firstCell.isEnabled()); i++) await page.clock.fastForward(250);
+    for (const cell of litCells) await page.getByRole('button', { name: `Cell ${cell}` }).click();
     await page.getByRole('button', { name: 'Submit' }).click();
   } else if (title === 'Number order') {
     for (let i = 1; i <= 3; i++) {
@@ -66,11 +75,48 @@ export async function finishCurrentDrill(page: Page) {
       if (await number.isVisible().catch(() => false)) await number.click();
     }
   } else if (title === 'Odd one out') {
-    await page.getByRole('button', { name: 'Tile 1' }).click();
+    const tiles = page.getByRole('button', { name: /^Tile / });
+    const signatures = await tiles.evaluateAll((buttons) => buttons.map((button) => {
+      const shape = button.querySelector('svg g');
+      return `${shape?.getAttribute('fill')}:${shape?.innerHTML}`;
+    }));
+    const oddIndex = signatures.findIndex((signature) => signatures.filter((value) => value === signature).length === 1);
+    await page.getByRole('button', { name: `Tile ${oddIndex + 1}` }).click();
   } else if (title === 'Reaction tap') {
-    await page.clock.fastForward(1_000);
     const target = page.getByRole('button', { name: 'Target: tap now' });
-    if (await target.isVisible().catch(() => false)) await target.click();
+    for (let i = 0; i < 16 && !(await target.isVisible().catch(() => false)); i++) {
+      await page.clock.fastForward(250);
+    }
+    await expect(target).toBeVisible();
+    await target.click();
+  } else if (title === 'Quick maths') {
+    const equation = await page.locator('p').filter({ hasText: /\d+\s*[+−×]\s*\d+\s*=\s*\d+/ }).first().innerText();
+    const match = equation.match(/(\d+)\s*([+−×])\s*(\d+)\s*=\s*(\d+)/);
+    if (!match) throw new Error(`Could not parse maths question: ${equation}`);
+    const [, lhsText, operator, rhsText, shownText] = match;
+    const lhs = Number(lhsText);
+    const rhs = Number(rhsText);
+    const shown = Number(shownText);
+    const correct = operator === '+' ? lhs + rhs : operator === '−' ? lhs - rhs : lhs * rhs;
+    await page.getByRole('button', { name: correct === shown ? 'YES' : 'NO' }).click();
+  } else if (title === 'Colour word') {
+    const prompt = page.locator('p').filter({ hasText: /^(BLUE|ORANGE|GREEN|RED|GREY)$/i }).first();
+    const { word, ink } = await prompt.evaluate((element) => ({
+      word: element.textContent?.trim().toLowerCase() ?? '',
+      ink: getComputedStyle(element).color,
+    }));
+    const inkMatchesWord = await page.evaluate((word) => {
+      const palette: Record<string, string> = {
+        blue: '#0077BB', orange: '#EE7733', green: '#009988', red: '#CC3311', grey: 'var(--drill-grey)',
+      };
+      const sample = document.createElement('span');
+      sample.style.color = palette[word] ?? '';
+      document.body.append(sample);
+      const expected = getComputedStyle(sample).color;
+      sample.remove();
+      return expected;
+    }, word);
+    await page.getByRole('button', { name: ink === inkMatchesWord ? 'MATCH' : 'NO MATCH', exact: true }).click();
   } else {
     const answer = page.getByRole('button', { name: /^(YES|NO|MATCH|NO MATCH)$/ }).first();
     await answer.click();
