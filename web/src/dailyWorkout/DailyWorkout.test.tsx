@@ -35,7 +35,9 @@ async function renderDailyWorkout() {
   render(<DailyWorkout onExit={() => {}} />);
   // useLeaderboard settles its initial two fetches asynchronously after mount.
   await act(async () => {
-    await new Promise<void>((resolve) => setImmediate(resolve));
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
   });
 }
 
