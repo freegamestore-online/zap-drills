@@ -2,14 +2,21 @@
   "name": "zap-drills",
   "private": true,
   "packageManager": "pnpm@10.30.3",
-  "engines": { "node": ">=22" },
-  "pnpm": { "onlyBuiltDependencies": ["esbuild"] },
+  "engines": {
+    "node": ">=22"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
   "scripts": {
     "dev": "pnpm --filter @zap-drills/web dev",
     "build": "pnpm --filter @zap-drills/web build",
     "preview": "pnpm --filter @zap-drills/web preview",
     "typecheck": "pnpm --filter @zap-drills/web exec tsc -b",
     "test": "pnpm --filter @zap-drills/web test",
-    "lint": "pnpm --filter @zap-drills/web lint"
+    "lint": "pnpm --filter @zap-drills/web lint",
+    "test:e2e": "pnpm --filter @zap-drills/e2e test"
   }
 }
