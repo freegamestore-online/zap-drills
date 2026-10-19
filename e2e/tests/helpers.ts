@@ -13,7 +13,7 @@ export async function preparePage(page: Page) {
     route.fulfill({ status: 200, contentType: 'application/json', body: 'null' }),
   );
   await page.route('https://api.freegamestore.online/**', (route) => route.fulfill({ status: 200, body: '' }));
-  await page.route('https://leaderboard.freegamestore.online/v1/api/leaderboard/**', (route) =>
+  await page.route('https://leaderboard.freegamestore.online/**', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ scores: [] }) }),
   );
   await page.addInitScript(() => {

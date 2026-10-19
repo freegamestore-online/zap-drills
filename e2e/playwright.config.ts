@@ -10,6 +10,7 @@ export default defineConfig({
     baseURL: 'http://localhost:4175',
     viewport: { width: 390, height: 844 },
     screenshot: 'only-on-failure',
+    serviceWorkers: 'block',
   },
   projects: [
     { name: 'light', use: { ...devices['iPhone 14'], browserName: 'chromium', isMobile: true, hasTouch: true, viewport: { width: 390, height: 844 }, colorScheme: 'light' } },

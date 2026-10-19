@@ -7,13 +7,14 @@ test('updates personal best and history chart after free play', async ({ page },
   const assertNoErrors = checkNoConsoleErrors(page);
   await page.getByRole('button', { name: 'Free play' }).click();
   await expect(page.getByRole('region', { name: 'History' })).toBeVisible();
-  await expect(page.getByRole('img', { name: /Quick maths: best score per day/ })).toBeVisible();
+  await expect(page.getByText('No runs in the last 14 days yet.')).toBeVisible();
   await takeScreenshot(page, testInfo, 'freeplay-list-chart');
   await page.getByRole('button', { name: 'Play Quick maths' }).click();
   await finishCurrentDrill(page);
   await page.getByRole('button', { name: 'Back to drills' }).click();
   await expect(page.getByRole('button', { name: 'Play Quick maths' })).not.toContainText('No best yet');
-  await expect(page.locator('[data-testid="chart-bar"]')).toHaveCount(14);
+  await expect(page.getByRole('img', { name: /Quick maths: best score per day for the last 14 days/ })).toBeVisible();
+  await expect(page.locator('[data-testid="chart-bar"]')).toHaveCount(1);
   await takeScreenshot(page, testInfo, 'freeplay-best-chart');
   await checkNoOverflow(page);
   assertNoErrors();

@@ -12,6 +12,7 @@ test('completes the three-drill daily workout, records its total and streak, sub
   });
   await page.getByRole('button', { name: 'Daily workout' }).click();
   await expect(page.getByRole('button', { name: 'Start workout' })).toBeVisible();
+  await checkNoOverflow(page);
   await takeScreenshot(page, testInfo, 'daily-intro');
   await page.getByRole('button', { name: 'Start workout' }).click();
   for (let i = 0; i < 3; i++) {

@@ -18,6 +18,7 @@ for (const [name, slug] of drills) {
     await page.getByRole('button', { name: 'Free play' }).click();
     await page.getByRole('button', { name: `Play ${name}` }).click();
     await expect(page.getByRole('button', { name: `Start ${name}` })).toBeVisible();
+    await checkNoOverflow(page);
     await takeScreenshot(page, testInfo, `${slug}-start`);
     await finishCurrentDrill(page);
     await takeScreenshot(page, testInfo, `${slug}-result`);
