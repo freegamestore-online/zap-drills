@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { DayBarChart } from "./DayBarChart";
+import { DayBarChart, WeeklyProgressChart } from "./DayBarChart";
 
 const TODAY = "2026-10-16";
 
@@ -55,5 +55,24 @@ describe("DayBarChart", () => {
   it("has an accessible label", () => {
     render(<DayBarChart label="Odd one out" history={[{ date: TODAY, score: 1 }]} today={TODAY} />);
     expect(screen.getByRole("img", { name: /Odd one out/ })).toBeInTheDocument();
+  });
+});
+
+describe("WeeklyProgressChart", () => {
+  it("combines every drill into seven daily totals", () => {
+    const { container } = render(
+      <WeeklyProgressChart
+        today={TODAY}
+        histories={[
+          [{ date: "2026-10-15", score: 4 }, { date: TODAY, score: 2 }],
+          [{ date: "2026-10-15", score: 3 }, { date: TODAY, score: 5 }],
+        ]}
+      />,
+    );
+    const bars = container.querySelectorAll<SVGRectElement>('[data-testid="chart-bar"]');
+    expect(bars).toHaveLength(2);
+    expect(bars[0]!.querySelector("title")?.textContent).toBe("2026-10-15: 7");
+    expect(bars[1]!.querySelector("title")?.textContent).toBe("2026-10-16: 7");
+    expect(screen.getByRole("img", { name: /Weekly progress across all drills/ })).toBeInTheDocument();
   });
 });

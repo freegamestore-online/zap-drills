@@ -4,7 +4,7 @@ import { DrillFlowContext } from "../drills/DrillFlow";
 import { DRILLS, drillById } from "../drills/registry";
 import type { DrillId } from "../drills/ids";
 import { utcDate } from "../dailyWorkout/date";
-import { DayBarChart } from "./DayBarChart";
+import { DayBarChart, WeeklyProgressChart } from "./DayBarChart";
 import { loadHistory, loadPersonalBest, recordRun } from "./records";
 
 /**
@@ -101,6 +101,11 @@ export function FreePlayScreen({ onExit }: { onExit: () => void }) {
           })}
         </div>
 
+        <section aria-label="Weekly progress" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <strong>Weekly progress</strong>
+          <WeeklyProgressChart histories={DRILLS.map((drill) => loadHistory(drill.id, today))} today={today} />
+        </section>
+
         <section
           aria-label="History"
           style={{
@@ -120,7 +125,7 @@ export function FreePlayScreen({ onExit }: { onExit: () => void }) {
               fontWeight: 700,
             }}
           >
-            Last 14 days
+            Drill history
             <select
               value={chartId}
               onChange={(e) => setChartId(e.target.value as DrillId)}

@@ -22,3 +22,8 @@ export function averageReaction(times: readonly number[]): number | null {
   if (times.length === 0) return null;
   return Math.round(times.reduce((sum, t) => sum + t, 0) / times.length);
 }
+
+/** A false start is a failed attempt and receives no reaction-time credit. */
+export function isFalseStart(phase: "waiting" | "target"): boolean {
+  return phase === "waiting";
+}

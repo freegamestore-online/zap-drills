@@ -21,6 +21,10 @@ for (const [name, slug] of drills) {
     await checkNoOverflow(page);
     await takeScreenshot(page, testInfo, `${slug}-start`);
     await finishCurrentDrill(page);
+    if (name === 'Reaction tap') {
+      await expect(page.getByRole('region', { name: 'Reaction leaderboard' })).toBeVisible();
+      await expect(page.getByText('Leaderboard · successful taps')).toBeVisible();
+    }
     await takeScreenshot(page, testInfo, `${slug}-result`);
     await checkNoOverflow(page);
     assertNoErrors();

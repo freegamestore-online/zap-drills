@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMemoryStorage } from "../test/memoryStorage";
-import { historyKey, loadHistory, loadPersonalBest, personalBestKey, recordRun, windowDates } from "./records";
+import { historyKey, loadHistory, loadPersonalBest, loadReactionBest, personalBestKey, reactionBestKey, recordReactionBest, recordRun, windowDates } from "./records";
 
 let store: ReturnType<typeof createMemoryStorage>;
 
@@ -14,6 +14,13 @@ afterEach(() => vi.unstubAllGlobals());
 const TODAY = "2026-10-16";
 
 describe("personal bests", () => {
+  it("keeps the fastest reaction average as the reaction personal best", () => {
+    expect(recordReactionBest(310)).toBe(310);
+    expect(recordReactionBest(340)).toBe(310);
+    expect(recordReactionBest(275)).toBe(275);
+    expect(loadReactionBest()).toBe(275);
+    expect(JSON.parse(store.getItem(reactionBestKey)!)).toBe(275);
+  });
   it("is null before any run", () => {
     expect(loadPersonalBest("maths")).toBeNull();
   });

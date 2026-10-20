@@ -18,6 +18,8 @@ interface DrillShellProps {
   scoreText?: string;
   /** Drill-complete summary. Defaults to "N right out of M". */
   summaryText?: string;
+  /** Optional content shown on the completed-run screen. */
+  resultContent?: ReactNode;
 }
 
 /**
@@ -33,6 +35,7 @@ export function DrillShell({
   children,
   scoreText,
   summaryText,
+  resultContent,
 }: DrillShellProps) {
   const { status, timeLeft, score, total, verdict } = session;
   const fieldRef = useRef<HTMLDivElement>(null);
@@ -141,6 +144,7 @@ export function DrillShell({
               {summaryText ?? `${score} right out of ${total}`}
             </p>
           </div>
+          {resultContent}
           <div
             style={{
               display: "flex",

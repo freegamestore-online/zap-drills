@@ -14,6 +14,20 @@ export interface HistoryEntry {
 
 export const personalBestKey = (id: DrillId) => `zd_pb_${id}`;
 export const historyKey = (id: DrillId) => `zd_history_${id}`;
+export const reactionBestKey = "zd_reaction_best_ms";
+
+/** Lowest completed average reaction time, in milliseconds. */
+export function loadReactionBest(): number | null {
+  const value = readJson(reactionBestKey);
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+export function recordReactionBest(averageMs: number): number {
+  const previous = loadReactionBest();
+  const best = previous === null ? averageMs : Math.min(previous, averageMs);
+  if (best !== previous) writeJson(reactionBestKey, best);
+  return best;
+}
 
 /** The 14 UTC days ending on `today`, oldest first. */
 export function windowDates(today: string = utcDate(), days: number = HISTORY_DAYS): string[] {

@@ -13,21 +13,23 @@ export function DayBarChart({
   label,
   history,
   today = utcDate(),
+  days = HISTORY_DAYS,
 }: {
   label: string;
   history: HistoryEntry[];
   today?: string;
+  days?: number;
 }) {
-  const dates = windowDates(today, HISTORY_DAYS);
+  const dates = windowDates(today, days);
   const byDate = new Map(history.map((e) => [e.date, e.score]));
   const max = Math.max(1, ...dates.map((d) => byDate.get(d) ?? 0));
-  const slot = WIDTH / HISTORY_DAYS;
+  const slot = WIDTH / days;
   const barWidth = slot * 0.7;
 
   if (history.length === 0) {
     return (
       <p style={{ color: "var(--muted)", textAlign: "center", padding: "24px 0" }}>
-        No runs in the last {HISTORY_DAYS} days yet.
+        No runs in the last {days} days yet.
       </p>
     );
   }
@@ -37,7 +39,7 @@ export function DayBarChart({
       viewBox={`0 0 ${WIDTH} ${HEIGHT + LABEL_HEIGHT}`}
       width="100%"
       role="img"
-      aria-label={`${label}: best score per day for the last ${HISTORY_DAYS} days`}
+      aria-label={`${label}: best score per day for the last ${days} days`}
     >
       {dates.map((date, i) => {
         const score = byDate.get(date);
@@ -66,4 +68,24 @@ export function DayBarChart({
       </text>
     </svg>
   );
+}
+
+/** Combined daily scores across every drill for the current and previous six days. */
+export function WeeklyProgressChart({
+  histories,
+  today = utcDate(),
+}: {
+  histories: HistoryEntry[][];
+  today?: string;
+}) {
+  const dates = windowDates(today, 7);
+  const totals = new Map<string, number>();
+  for (const history of histories) {
+    for (const entry of history) totals.set(entry.date, (totals.get(entry.date) ?? 0) + entry.score);
+  }
+  const history = dates.flatMap((date) => {
+    const score = totals.get(date);
+    return score === undefined ? [] : [{ date, score }];
+  });
+  return <DayBarChart label="Weekly progress across all drills" history={history} today={today} days={7} />;
 }

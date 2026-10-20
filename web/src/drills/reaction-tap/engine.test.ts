@@ -4,6 +4,7 @@ import {
   MIN_DELAY_MS,
   TARGET_TIMEOUT_MS,
   averageReaction,
+  isFalseStart,
   randomDelay,
   reactionTime,
 } from "./engine";
@@ -39,6 +40,13 @@ describe("reactionTime", () => {
 
   it("never goes negative", () => {
     expect(reactionTime(1000, 990)).toBe(0);
+  });
+});
+
+describe("false starts", () => {
+  it("penalizes taps while waiting and accepts taps after the target appears", () => {
+    expect(isFalseStart("waiting")).toBe(true);
+    expect(isFalseStart("target")).toBe(false);
   });
 });
 
