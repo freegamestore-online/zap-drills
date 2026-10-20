@@ -14,6 +14,7 @@ import { loadHistory, loadPersonalBest, recordRun } from "./records";
 export function FreePlayScreen({ onExit }: { onExit: () => void }) {
   const [playing, setPlaying] = useState<DrillId | null>(null);
   const [chartId, setChartId] = useState<DrillId>(DRILLS[0]!.id);
+  const [newBest, setNewBest] = useState(false);
   // Bumped after each run so bests and history are read again.
   const [, setRuns] = useState(0);
 
@@ -22,8 +23,9 @@ export function FreePlayScreen({ onExit }: { onExit: () => void }) {
     return (
       <DrillFlowContext.Provider
         value={{
+          newBest,
           onFinish: (score) => {
-            recordRun(playing, score, utcDate());
+            setNewBest(recordRun(playing, score, utcDate()).isNewBest);
             setRuns((n) => n + 1);
           },
         }}
@@ -35,6 +37,7 @@ export function FreePlayScreen({ onExit }: { onExit: () => void }) {
 
   const today = utcDate();
   const chartDrill = drillById(chartId);
+  const chartHistory = loadHistory(chartId, today);
 
   return (
     <div
@@ -150,9 +153,14 @@ export function FreePlayScreen({ onExit }: { onExit: () => void }) {
           </label>
           <DayBarChart
             label={chartDrill.name}
-            history={loadHistory(chartId, today)}
+            history={chartHistory}
             today={today}
           />
+          <ol aria-label={`${chartDrill.name} personal-best history`} style={{ margin: 0, paddingLeft: 24, color: "var(--muted)", fontSize: "0.8rem" }}>
+            {chartHistory.length === 0 ? <li>No personal bests recorded yet.</li> : chartHistory.map((entry) => (
+              <li key={entry.date}>{entry.date}: {entry.score}</li>
+            ))}
+          </ol>
         </section>
       </div>
     </div>

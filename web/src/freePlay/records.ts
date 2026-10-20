@@ -3,7 +3,7 @@ import { previousUtcDate, utcDate } from "../dailyWorkout/date";
 import { readJson, writeJson } from "../dailyWorkout/storage";
 
 /** Days of history kept per drill, today included. */
-export const HISTORY_DAYS = 14;
+export const HISTORY_DAYS = 30;
 
 export interface HistoryEntry {
   /** UTC day, YYYY-MM-DD. */
@@ -29,7 +29,7 @@ export function recordReactionBest(averageMs: number): number {
   return best;
 }
 
-/** The 14 UTC days ending on `today`, oldest first. */
+/** The 30 UTC days ending on `today`, oldest first. */
 export function windowDates(today: string = utcDate(), days: number = HISTORY_DAYS): string[] {
   const dates = [today];
   for (let i = 1; i < days; i++) dates.unshift(previousUtcDate(dates[0]!));
@@ -59,7 +59,7 @@ function readHistory(id: DrillId): HistoryEntry[] {
   return value.filter(isEntry).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
 
-/** The entries inside the 14-day window ending on `today`, oldest first. */
+/** The entries inside the 30-day window ending on `today`, oldest first. */
 export function loadHistory(id: DrillId, today: string = utcDate()): HistoryEntry[] {
   const start = windowStart(today);
   return readHistory(id).filter((e) => e.date >= start && e.date <= today);

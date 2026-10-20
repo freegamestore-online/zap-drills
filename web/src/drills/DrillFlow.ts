@@ -7,6 +7,8 @@ import { createContext } from "react";
 export interface DrillFlow {
   /** Called once when the drill finishes, with its score. */
   onFinish?: (score: number) => void;
+  /** True when the current finished run set a new personal best. */
+  newBest?: boolean;
   /** Replaces "Play again" on the drill-complete card with a button that moves the host on. */
   next?: { label: string; onNext: () => void };
 }

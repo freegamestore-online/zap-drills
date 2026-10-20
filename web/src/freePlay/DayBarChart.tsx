@@ -6,7 +6,7 @@ const HEIGHT = 110;
 const LABEL_HEIGHT = 16;
 
 /**
- * One bar per day that has a score, over the last 14 UTC days. Days with no run leave
+ * One bar per day that has a score, over the last 30 UTC days. Days with no run leave
  * a gap. Drawn as SVG, so there's no chart library and it scales with its container.
  */
 export function DayBarChart({

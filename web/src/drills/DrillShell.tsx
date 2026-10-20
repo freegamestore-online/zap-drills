@@ -144,6 +144,11 @@ export function DrillShell({
               {summaryText ?? `${score} right out of ${total}`}
             </p>
           </div>
+          {flow.newBest && (
+            <p role="status" style={{ color: "var(--accent)", fontWeight: 800, textAlign: "center" }}>
+              New personal best!
+            </p>
+          )}
           {resultContent}
           <div
             style={{
