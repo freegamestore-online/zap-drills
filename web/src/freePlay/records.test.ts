@@ -57,7 +57,7 @@ describe("personal bests", () => {
   });
 });
 
-describe("14-day history", () => {
+describe("30-day history", () => {
   it("writes an entry and reads it back", () => {
     recordRun("maths", 7, TODAY);
     expect(loadHistory("maths", TODAY)).toEqual([{ date: TODAY, score: 7 }]);
@@ -71,20 +71,20 @@ describe("14-day history", () => {
     expect(loadHistory("maths", TODAY)).toEqual([{ date: TODAY, score: 9 }]);
   });
 
-  it("returns exactly the 14 days ending on today, oldest first", () => {
+  it("returns exactly the 30 days ending on today, oldest first", () => {
     const dates = windowDates(TODAY);
-    expect(dates).toHaveLength(14);
-    expect(dates[0]).toBe("2026-10-03");
-    expect(dates[13]).toBe(TODAY);
+    expect(dates).toHaveLength(30);
+    expect(dates[0]).toBe("2026-09-17");
+    expect(dates[29]).toBe(TODAY);
   });
 
-  it("trims entries older than the 14-day window when a run is recorded", () => {
-    // The window is 14 days ending today, so 2026-10-03 is the oldest day kept.
-    recordRun("maths", 5, "2026-10-02");
-    recordRun("maths", 6, "2026-10-03");
+  it("trims entries older than the 30-day window when a run is recorded", () => {
+    // The window is 30 days ending today, so 2026-09-17 is the oldest day kept.
+    recordRun("maths", 5, "2026-09-16");
+    recordRun("maths", 6, "2026-09-17");
     recordRun("maths", 8, TODAY);
     const stored = JSON.parse(store.getItem(historyKey("maths"))!) as { date: string }[];
-    expect(stored.map((e) => e.date)).toEqual(["2026-10-03", TODAY]);
+    expect(stored.map((e) => e.date)).toEqual(["2026-09-17", TODAY]);
   });
 
   it("hides entries outside the window when reading, even if stored", () => {
@@ -92,12 +92,12 @@ describe("14-day history", () => {
       historyKey("maths"),
       JSON.stringify([
         { date: "2026-09-02", score: 1 },
-        { date: "2026-10-03", score: 2 },
+        { date: "2026-09-17", score: 2 },
         { date: TODAY, score: 3 },
       ]),
     );
     expect(loadHistory("maths", TODAY)).toEqual([
-      { date: "2026-10-03", score: 2 },
+      { date: "2026-09-17", score: 2 },
       { date: TODAY, score: 3 },
     ]);
   });

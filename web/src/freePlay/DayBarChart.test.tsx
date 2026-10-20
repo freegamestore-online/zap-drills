@@ -49,7 +49,7 @@ describe("DayBarChart", () => {
 
   it("labels the chart and says so when there is no data", () => {
     render(<DayBarChart label="Odd one out" history={[]} today={TODAY} />);
-    expect(screen.getByText(/No runs in the last 14 days yet/)).toBeInTheDocument();
+    expect(screen.getByText(/No runs in the last 30 days yet/)).toBeInTheDocument();
   });
 
   it("has an accessible label", () => {
