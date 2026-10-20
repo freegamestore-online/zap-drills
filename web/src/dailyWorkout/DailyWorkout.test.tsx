@@ -16,6 +16,8 @@ beforeEach(() => {
   store = createMemoryStorage();
   vi.stubGlobal("localStorage", store);
   vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "requestAnimationFrame", "cancelAnimationFrame", "performance", "Date"] });
+  // 2026-10-20 includes Reaction tap, covering its hosted leaderboard behavior.
+  vi.setSystemTime(new Date("2026-10-20T12:00:00Z"));
 });
 
 afterEach(() => {
@@ -100,6 +102,7 @@ describe("leaderboard submission", () => {
 
     await playWholeWorkout();
 
+    expect(scorePosts(fetchMock)).toHaveLength(1);
     const [url, init] = scorePosts(fetchMock)[0]!;
     expect(String(url)).toMatch(/\/api\/scores$/);
     const body = JSON.parse((init as RequestInit).body as string);

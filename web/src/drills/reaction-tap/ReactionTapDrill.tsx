@@ -1,15 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Leaderboard, useLeaderboard } from "@freegamestore/games";
 import { GAME_ID } from "../../config";
 import { DrillShell } from "../DrillShell";
 import { useDrillSession } from "../useDrillSession";
 import { TARGET_TIMEOUT_MS, averageReaction, isFalseStart, randomDelay, reactionTime } from "./engine";
 import { loadReactionBest, recordReactionBest } from "../../freePlay/records";
+import { DrillFlowContext } from "../DrillFlow";
 
 type Phase = "waiting" | "target";
 
 export function ReactionTapDrill({ onExit }: { onExit: () => void }) {
   const session = useDrillSession();
+  const flow = useContext(DrillFlowContext);
   const { record } = session;
   const running = session.status === "running";
   const [phase, setPhase] = useState<Phase>("waiting");
@@ -38,10 +40,10 @@ export function ReactionTapDrill({ onExit }: { onExit: () => void }) {
   };
 
   useEffect(() => {
-    if (session.status !== "done" || reportedLeaderboard.current) return;
+    if (session.status !== "done" || flow.onFinish || reportedLeaderboard.current) return;
     reportedLeaderboard.current = true;
     void submitScore(session.score);
-  }, [session.status, session.score, submitScore]);
+  }, [session.status, session.score, flow.onFinish, submitScore]);
 
   const advance = () => {
     setPhase("waiting");
