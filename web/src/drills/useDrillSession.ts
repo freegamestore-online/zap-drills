@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useGameLoop } from "../hooks/useGameLoop";
-import { DRILL_MS, timeLeftFraction } from "./timer";
+import { DRILL_MS, elapsedMs, timeLeftFraction } from "./timer";
 
 export type DrillStatus = "ready" | "running" | "done";
 
@@ -33,14 +33,16 @@ export function useDrillSession(): DrillSession {
   const [total, setTotal] = useState(0);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const elapsedRef = useRef(0);
+  const startedAtRef = useRef(0);
 
-  useGameLoop((dt) => {
-    elapsedRef.current += dt * 1000;
+  useGameLoop(() => {
+    elapsedRef.current = elapsedMs(startedAtRef.current, performance.now());
     setTimeLeft(timeLeftFraction(elapsedRef.current));
     if (elapsedRef.current >= DRILL_MS) setStatus("done");
   }, status !== "running");
 
   const start = useCallback(() => {
+    startedAtRef.current = performance.now();
     elapsedRef.current = 0;
     setTimeLeft(1);
     setScore(0);
