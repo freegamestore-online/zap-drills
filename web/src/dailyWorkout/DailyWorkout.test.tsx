@@ -1,18 +1,39 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useLeaderboard } from "@freegamestore/games";
 import { DailyWorkout } from "./DailyWorkout";
 import { getDrillsForDate } from "./seed";
 import { utcDate } from "./date";
 import { drillById } from "../drills/registry";
 import { loadDayResult, STREAK_KEY } from "./storage";
 import { createMemoryStorage } from "../test/memoryStorage";
-import { GAME_ID } from "../config";
+
+vi.mock("@freegamestore/games", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@freegamestore/games")>();
+  return {
+    ...actual,
+    useLeaderboard: vi.fn(() => ({
+      topScores: [],
+      recentScores: [],
+      loading: false,
+      submitScore: vi.fn().mockResolvedValue({ ok: true }),
+      refresh: vi.fn(),
+    })),
+  };
+});
 
 const DRILL_MS = 60_000;
 
 let store: ReturnType<typeof createMemoryStorage>;
 
 beforeEach(() => {
+  vi.mocked(useLeaderboard).mockReturnValue({
+    topScores: [],
+    recentScores: [],
+    loading: false,
+    submitScore: vi.fn().mockResolvedValue({ ok: true }),
+    refresh: vi.fn(),
+  });
   store = createMemoryStorage();
   vi.stubGlobal("localStorage", store);
   vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "requestAnimationFrame", "cancelAnimationFrame", "performance", "Date"] });
@@ -91,47 +112,43 @@ describe("DailyWorkout", () => {
 });
 
 describe("leaderboard submission", () => {
-  /** The POST requests the workout sent to the leaderboard API. */
-  function scorePosts(fetchMock: ReturnType<typeof vi.fn>) {
-    return fetchMock.mock.calls.filter(([, init]) => (init as RequestInit | undefined)?.method === "POST");
-  }
+  let submitScore: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    submitScore = vi.fn().mockResolvedValue({ ok: true });
+    vi.mocked(useLeaderboard).mockReturnValue({
+      topScores: [],
+      recentScores: [],
+      loading: false,
+      submitScore,
+      refresh: vi.fn(),
+    });
+  });
 
   it("submits the combined total when the workout is finished", async () => {
-    const fetchMock = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true, rank: 4 }) }));
-    vi.stubGlobal("fetch", fetchMock);
-
     await playWholeWorkout();
 
-    expect(scorePosts(fetchMock)).toHaveLength(1);
-    const [url, init] = scorePosts(fetchMock)[0]!;
-    expect(String(url)).toMatch(/\/api\/scores$/);
-    const body = JSON.parse((init as RequestInit).body as string);
-    expect(body).toEqual({ game: GAME_ID, score: loadDayResult(utcDate())!.total });
+    expect(submitScore).toHaveBeenCalledOnce();
+    expect(submitScore).toHaveBeenCalledWith(loadDayResult(utcDate())!.total);
   });
 
   it("handles an 'Invalid game' rejection quietly and still shows the results", async () => {
-    const fetchMock = vi.fn(() =>
-      Promise.resolve({ ok: false, status: 400, json: () => Promise.resolve({ error: "Invalid game" }) }),
-    );
-    vi.stubGlobal("fetch", fetchMock);
+    submitScore.mockResolvedValue({ ok: false });
 
     await playWholeWorkout();
 
-    expect(scorePosts(fetchMock)).toHaveLength(1);
+    expect(submitScore).toHaveBeenCalledOnce();
     expect(screen.getByRole("heading", { name: "Workout complete" })).toBeInTheDocument();
     expect(screen.queryByText(/invalid game/i)).toBeNull();
     expect(loadDayResult(utcDate())).not.toBeNull();
   });
 
   it("survives a dropped connection without an unhandled error", async () => {
-    const fetchMock = vi.fn(() => Promise.reject(new TypeError("Failed to fetch")));
-    vi.stubGlobal("fetch", fetchMock);
+    submitScore.mockResolvedValue({ ok: false });
 
     await playWholeWorkout();
-    act(() => {
-      vi.runOnlyPendingTimers();
-    });
 
+    expect(submitScore).toHaveBeenCalledOnce();
     expect(screen.getByRole("heading", { name: "Workout complete" })).toBeInTheDocument();
     expect(loadDayResult(utcDate())).not.toBeNull();
   });
